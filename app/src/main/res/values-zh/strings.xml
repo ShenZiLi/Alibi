@@ -142,8 +142,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">准备您的录制</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">选择摄像头</string>
     <string name="ui_videoRecorder_action_preview_label">按住按钮预览您的摄像头</string>
-    <string name="ui_videoRecorder_action_torch_off">禁用手电筒</string>
-    <string name="ui_videoRecorder_action_torch_on">启用手电筒</string>
     <string name="ui_videoRecorder_action_configure_label">长按进行配置</string>
     <string name="ui_recorder_action_changeMaxDuration_title">停止时，保存最后...</string>
     <string name="ui_recorder_info_startTime_short">录制开始于 %s</string>
@@ -219,4 +217,17 @@
     <string name="ui_settings_option_filenameFormat_success">新格式将用于未来的录音</string>
     <string name="ui_settings_option_filenameFormat_action_now_label">节省时间</string>
     <string name="ui_settings_option_filenameFormat_action_now_explanation">使用你保存录音的时间</string>
+    <string name="ui_videoRecorder_action_smallWindow">小窗</string>
+    <string name="ui_videoRecorder_smallWindow_unavailable">无法开启小窗，请确认正在录像，并允许 Alibi 显示在其他应用上层。</string>
+    <string name="ui_videoRecorder_smallWindow_permission">请允许 Alibi 显示在其他应用上层，返回后将开启小窗。</string>
+    <string name="ui_videoRecorder_smallWindow_move">按住小窗中央覆盖80%面积的区域即可拖动，无需长按</string>
+    <string name="ui_videoRecorder_smallWindow_resize">拖动右下角边缘调整大小</string>
+    <string name="ui_videoRecorder_smallWindow_doubleTapClose">双击关闭小窗，录像继续</string>
+    <string name="ui_videoRecorder_camera_main">后置 · 主摄</string>
+    <string name="ui_videoRecorder_camera_ultraWide">后置 · 超广角</string>
+    <string name="ui_videoRecorder_camera_telephoto">后置 · 长焦</string>
+    <string name="ui_videoRecorder_camera_short_main">主摄</string>
+    <string name="ui_videoRecorder_camera_short_ultraWide">超广角</string>
+    <string name="ui_videoRecorder_camera_short_telephoto">长焦</string>
+    <string name="ui_videoRecorder_camera_short_front">前置</string>
 </resources>

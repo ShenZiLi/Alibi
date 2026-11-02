@@ -1,12 +1,19 @@
 package app.myzel394.alibi.ui.components.RecorderScreen.organisms
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.content.res.Configuration
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,16 +22,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PictureInPictureAlt
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,12 +46,13 @@ import androidx.compose.ui.unit.dp
 import app.myzel394.alibi.R
 import app.myzel394.alibi.dataStore
 import app.myzel394.alibi.ui.components.RecorderScreen.atoms.SaveCurrentNowModal
-import app.myzel394.alibi.ui.components.RecorderScreen.atoms.TorchStatus
 import app.myzel394.alibi.ui.components.RecorderScreen.molecules.RecordingControl
 import app.myzel394.alibi.ui.components.RecorderScreen.molecules.RecordingStatus
 import app.myzel394.alibi.ui.models.VideoRecorderModel
+import app.myzel394.alibi.ui.utils.cameraLabel
 import app.myzel394.alibi.ui.utils.CameraInfo
 import app.myzel394.alibi.ui.utils.KeepScreenOn
+import app.myzel394.alibi.ui.utils.findActivity
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.launch
 
@@ -160,19 +171,11 @@ fun _VideoGeneralInfo(videoRecorder: VideoRecorderModel) {
             Text(
                 stringResource(
                     R.string.form_value_selected,
-                    if (CameraInfo.checkHasNormalCameras(availableCameras)) {
-                        videoRecorder.cameraID.let {
-                            if (it == CameraInfo.Lens.BACK.androidValue)
-                                stringResource(R.string.ui_videoRecorder_action_start_settings_cameraLens_back_label)
-                            else
-                                stringResource(R.string.ui_videoRecorder_action_start_settings_cameraLens_front_label)
-                        }
-                    } else {
-                        stringResource(
+                    availableCameras.firstOrNull { it.id == videoRecorder.cameraID }
+                        ?.cameraLabel() ?: stringResource(
                             R.string.ui_videoRecorder_action_start_settings_cameraLens_label,
-                            videoRecorder.cameraID
+                            videoRecorder.cameraID ?: "",
                         )
-                    }
                 ),
                 style = MaterialTheme.typography.labelMedium,
             )
@@ -274,22 +277,55 @@ fun _PrimitiveControls(videoRecorder: VideoRecorderModel) {
 @Composable
 fun _VideoControls(videoRecorder: VideoRecorderModel) {
     if (!videoRecorder.isStartingRecording) {
-        val cameraControl = videoRecorder.recorderService!!.cameraControl!!
-        if (cameraControl.hasTorchAvailable()) {
-            var torchEnabled by rememberSaveable { mutableStateOf(cameraControl.torchEnabled) }
-
-            TorchStatus(
-                enabled = torchEnabled,
-                onChange = {
-                    if (torchEnabled) {
-                        torchEnabled = false
-                        cameraControl.disableTorch()
-                    } else {
-                        torchEnabled = true
-                        cameraControl.enableTorch()
-                    }
-                },
-            )
+        val context = LocalContext.current
+        val service = videoRecorder.recorderService ?: return
+        val preview by service.preview.collectAsState()
+        val floatingVisible by service.isFloatingPreviewVisible.collectAsState()
+        fun showWindow() {
+            if (service.showFloatingPreview()) {
+                context.findActivity()?.moveTaskToBack(true)
+            } else {
+                Toast.makeText(context, R.string.ui_videoRecorder_smallWindow_unavailable,
+                    Toast.LENGTH_LONG).show()
+            }
+        }
+        val permissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) {
+            if (Settings.canDrawOverlays(context)) showWindow()
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+                OutlinedButton(
+                    enabled = !floatingVisible && preview != null && videoRecorder.isCurrentlyActivelyRecording,
+                    onClick = {
+                        runCatching {
+                            when {
+                                Settings.canDrawOverlays(context) -> showWindow()
+                                else -> {
+                                    Toast.makeText(context,
+                                        R.string.ui_videoRecorder_smallWindow_permission,
+                                        Toast.LENGTH_LONG).show()
+                                    permissionLauncher.launch(Intent(
+                                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                        Uri.parse("package:${context.packageName}"),
+                                    ))
+                                }
+                            }
+                        }.onFailure {
+                            Toast.makeText(context, R.string.ui_videoRecorder_smallWindow_unavailable,
+                                Toast.LENGTH_LONG).show()
+                        }
+                    },
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                ) {
+                    Icon(Icons.Default.PictureInPictureAlt, contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.ui_videoRecorder_action_smallWindow))
+                }
         }
     }
 }

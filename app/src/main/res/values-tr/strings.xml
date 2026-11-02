@@ -142,8 +142,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">Kaydınızı hazırlayın</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">Kamera seç</string>
     <string name="ui_videoRecorder_action_preview_label">Kameranızı önizlemek için düğmeyi basılı tutun</string>
-    <string name="ui_videoRecorder_action_torch_off">Meşaleyi Devre Dışı Bırak</string>
-    <string name="ui_videoRecorder_action_torch_on">Meşaleyi Etkinleştir</string>
     <string name="ui_videoRecorder_action_configure_label">Yapılandırma için uzun basın</string>
     <string name="ui_recorder_action_changeMaxDuration_title">Durdurulduğunda, sonuncuyu kaydedin...</string>
     <string name="ui_recorder_info_startTime_short">Kayıt %s \'de başladı</string>

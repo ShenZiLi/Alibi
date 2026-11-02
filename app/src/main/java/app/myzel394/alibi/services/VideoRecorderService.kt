@@ -2,12 +2,15 @@ package app.myzel394.alibi.services
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.util.Range
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.TorchState
+import androidx.camera.core.Preview
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileDescriptorOutputOptions
 import androidx.camera.video.FileOutputOptions
@@ -27,11 +30,15 @@ import app.myzel394.alibi.helpers.BatchesFolder
 import app.myzel394.alibi.helpers.VideoBatchesFolder
 import app.myzel394.alibi.ui.SUPPORTS_SAVING_VIDEOS_IN_CUSTOM_FOLDERS
 import app.myzel394.alibi.ui.SUPPORTS_SCOPED_STORAGE
+import app.myzel394.alibi.ui.utils.CameraInfo
+import app.myzel394.alibi.ui.components.RecorderScreen.atoms.FloatingVideoPreview
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.properties.Delegates
@@ -48,6 +55,36 @@ class VideoRecorderService :
     private var videoCapture: VideoCapture<Recorder>? = null
     private var activeRecording: Recording? = null
 
+    private val _preview = MutableStateFlow<Preview?>(null)
+    val preview = _preview.asStateFlow()
+    private var floatingPreview: FloatingVideoPreview? = null
+    private val _isFloatingPreviewVisible = MutableStateFlow(false)
+    val isFloatingPreviewVisible = _isFloatingPreviewVisible.asStateFlow()
+
+    fun showFloatingPreview(): Boolean {
+        if (floatingPreview != null) return true
+        if (state != RecorderState.RECORDING) return false
+        val useCase = _preview.value ?: return false
+        val window = runCatching {
+            FloatingVideoPreview(this, useCase, ::hideFloatingPreview)
+        }.getOrNull() ?: return false
+        if (!window.show()) return false
+        floatingPreview = window
+        _isFloatingPreviewVisible.value = true
+        return true
+    }
+
+    fun hideFloatingPreview() {
+        floatingPreview?.close()
+        floatingPreview = null
+        _isFloatingPreviewVisible.value = false
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        floatingPreview?.onConfigurationChanged()
+    }
+
     // Used to listen and check if the camera is available
     private var _cameraAvailableListener = CompletableDeferred<Unit>()
     private lateinit var _videoFinalizerListener: CompletableDeferred<Unit>;
@@ -56,18 +93,16 @@ class VideoRecorderService :
     private var _cameraCloserListener = CompletableDeferred<Unit>()
 
     private lateinit var selectedCamera: CameraSelector
+    var cameraID: String? = null
+        private set
     private var enableAudio by Delegates.notNull<Boolean>()
 
-    var onCameraControlAvailable = {}
-
-    var cameraControl: CameraControl? = null
-        private set
+    var onCameraReady = {}
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == "init") {
-            selectedCamera = CameraSelector.Builder().requireLensFacing(
-                intent.getIntExtra("cameraID", CameraSelector.LENS_FACING_BACK)
-            ).build()
+            cameraID = intent.getStringExtra("cameraID")
+            selectedCamera = CameraInfo.selectorForId(cameraID)
             enableAudio = intent.getBooleanExtra("enableAudio", true)
         }
 
@@ -103,6 +138,13 @@ class VideoRecorderService :
         super.pause()
 
         stopActiveRecording()
+    }
+
+    override fun onDestroy() {
+        hideFloatingPreview()
+        _preview.value?.setSurfaceProvider(null)
+        _preview.value = null
+        super.onDestroy()
     }
 
     override fun startForegroundService() {
@@ -182,6 +224,7 @@ class VideoRecorderService :
     // Open the camera.
     // Used to open it for a longer time, shouldn't be called when pausing / resuming.
     // This should only be called when starting a recording.
+    @androidx.annotation.OptIn(ExperimentalCamera2Interop::class)
     private suspend fun openCamera() {
         cameraProvider = withContext(Dispatchers.IO) {
             ProcessCameraProvider.getInstance(this@VideoRecorderService).get()
@@ -192,16 +235,22 @@ class VideoRecorderService :
 
         runOnMain {
             try {
-                camera = cameraProvider!!.bindToLifecycle(
-                    this,
-                    selectedCamera,
-                    videoCapture
-                )
-
-                cameraControl = CameraControl(camera!!).also {
-                    it.init()
+                // Bind once, before recording starts. Attaching a small window must never
+                // unbind or replace VideoCapture while a recording is in progress.
+                val preview = Preview.Builder().build()
+                camera = try {
+                    cameraProvider!!.bindToLifecycle(
+                        this, selectedCamera, videoCapture, preview
+                    ).also { _preview.value = preview }
+                } catch (error: IllegalArgumentException) {
+                    // Some camera/quality combinations cannot support both use cases.
+                    // Keep background recording available on those devices.
+                    cameraProvider!!.unbind(preview)
+                    cameraProvider!!.bindToLifecycle(this, selectedCamera, videoCapture)
                 }
-                onCameraControlAvailable()
+
+                cameraID = Camera2CameraInfo.from(camera!!.cameraInfo).cameraId
+                onCameraReady()
 
                 _cameraAvailableListener.complete(Unit)
             } catch (error: IllegalArgumentException) {
@@ -215,6 +264,9 @@ class VideoRecorderService :
     // This should only be called after recording has finished.
     private fun closeCamera() {
         runOnMain {
+            hideFloatingPreview()
+            _preview.value?.setSurfaceProvider(null)
+            _preview.value = null
             runCatching {
                 cameraProvider?.unbindAll()
             }
@@ -319,29 +371,4 @@ class VideoRecorderService :
         const val CAMERA_CLOSE_TIMEOUT = 20000L
     }
 
-    class CameraControl(
-        val camera: Camera,
-        // Save state for optimistic updates
-        var torchEnabled: Boolean = false,
-    ) {
-        fun init() {
-            torchEnabled = camera.cameraInfo.torchState.value == TorchState.ON
-        }
-
-        fun enableTorch() {
-            torchEnabled = true
-            camera.cameraControl.enableTorch(true)
-        }
-
-        fun disableTorch() {
-            torchEnabled = false
-            camera.cameraControl.enableTorch(false)
-        }
-
-        fun isHardwareTorchReallyEnabled(): Boolean {
-            return camera.cameraInfo.torchState.value == TorchState.ON
-        }
-
-        fun hasTorchAvailable() = camera.cameraInfo.hasFlashUnit()
-    }
 }

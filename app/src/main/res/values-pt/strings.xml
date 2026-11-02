@@ -142,8 +142,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">Prepare sua gravação</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">Selecione a câmera</string>
     <string name="ui_videoRecorder_action_preview_label">Segure o botão para pré-visualizar a câmera</string>
-    <string name="ui_videoRecorder_action_torch_off">Desativar a Lanterna</string>
-    <string name="ui_videoRecorder_action_torch_on">Ativar a Lanterna</string>
     <string name="ui_videoRecorder_action_configure_label">Pressione continuamente para acessar configurações</string>
     <string name="ui_recorder_action_changeMaxDuration_title">Quando interrompido, salve a última...</string>
     <string name="ui_recorder_info_startTime_short">Gravação iniciada em %s</string>

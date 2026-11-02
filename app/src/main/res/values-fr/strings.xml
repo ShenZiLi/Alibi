@@ -142,8 +142,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">Préparez votre enregistrement</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">Sélectionner une caméra</string>
     <string name="ui_videoRecorder_action_preview_label">Maintenez le bouton enfoncé pour prévisualiser votre caméra</string>
-    <string name="ui_videoRecorder_action_torch_off">Désactiver la torche</string>
-    <string name="ui_videoRecorder_action_torch_on">Activer la torche</string>
     <string name="ui_videoRecorder_action_configure_label">Maintenir appuyé pour accéder aux paramètres</string>
     <string name="ui_recorder_action_changeMaxDuration_title">Quand arrêté, enregistrez les dernières...</string>
     <string name="ui_recorder_info_startTime_short">L\'enregistrement a commencé à %s</string>

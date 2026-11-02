@@ -4,9 +4,15 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -21,6 +27,16 @@ fun CameraPreview(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val previewUseCase = remember { Preview.Builder().build() }
+    var boundProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
+
+    DisposableEffect(previewUseCase) {
+        onDispose {
+            // Release only this preparation preview before the recording service takes over.
+            boundProvider?.unbind(previewUseCase)
+            previewUseCase.setSurfaceProvider(null)
+        }
+    }
 
     Box(modifier = modifier) {
         // Video preview
@@ -32,14 +48,12 @@ fun CameraPreview(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                     )
                 }
-                val previewUseCase = Preview.Builder()
-                    .build()
-                    .also { it.setSurfaceProvider(previewView.surfaceProvider) }
+                previewUseCase.setSurfaceProvider(previewView.surfaceProvider)
 
                 coroutineScope.launch {
                     val cameraProvider = context.getCameraProvider()
                     try {
-                        cameraProvider.unbindAll()
+                        boundProvider = cameraProvider
                         cameraProvider.bindToLifecycle(
                             lifecycleOwner,
                             cameraSelector,

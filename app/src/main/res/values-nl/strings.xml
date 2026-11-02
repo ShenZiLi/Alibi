@@ -142,8 +142,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">Bereid uw opname voor</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">Selecteer camera</string>
     <string name="ui_videoRecorder_action_preview_label">Houd de knop ingedrukt om uw camera te bekijken</string>
-    <string name="ui_videoRecorder_action_torch_off">Zaklamp Uitschakelen</string>
-    <string name="ui_videoRecorder_action_torch_on">Zaklamp Inschakelen</string>
     <string name="ui_videoRecorder_action_configure_label">Druk lang in voor configuratie</string>
     <string name="ui_recorder_action_changeMaxDuration_title">Indien gestopt, opslaan de laatste...</string>
     <string name="ui_recorder_info_startTime_short">Op %s opname gestart</string>

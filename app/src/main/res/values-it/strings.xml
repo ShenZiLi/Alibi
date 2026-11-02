@@ -142,8 +142,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">Prepara la tua registrazione</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">Seleziona videocamera</string>
     <string name="ui_videoRecorder_action_preview_label">Tieni premuto il pulsante per visualizzare l\'anteprima della videocamera</string>
-    <string name="ui_videoRecorder_action_torch_off">Disattiva Torcia</string>
-    <string name="ui_videoRecorder_action_torch_on">Attiva Torcia</string>
     <string name="ui_videoRecorder_action_configure_label">Premi a lungo per la configurazione</string>
     <string name="ui_recorder_action_changeMaxDuration_title">Quando fermato, salva gli ultimi...</string>
     <string name="ui_recorder_info_startTime_short">Registrazione avviata alle %s</string>

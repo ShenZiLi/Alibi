@@ -156,8 +156,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">Prepare your recording</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">Select camera</string>
     <string name="ui_videoRecorder_action_preview_label">Hold down on button to preview your camera</string>
-    <string name="ui_videoRecorder_action_torch_off">Disable Torch</string>
-    <string name="ui_videoRecorder_action_torch_on">Enable Torch</string>
     <string name="ui_videoRecorder_action_configure_label">Press long for configuration</string>
     <string name="ui_recorder_action_changeMaxDuration_title">When stopped, save the last...</string>
     <string name="ui_recorder_info_startTime_short">Recording started at %s</string>
@@ -233,4 +231,17 @@
     <string name="ui_settings_option_filenameFormat_success">The new format will be used for future recordings</string>
     <string name="ui_settings_option_filenameFormat_action_now_label">Save time</string>
     <string name="ui_settings_option_filenameFormat_action_now_explanation">Use the time you saved the recording</string>
+    <string name="ui_videoRecorder_action_smallWindow">Small window</string>
+    <string name="ui_videoRecorder_smallWindow_unavailable">Unable to open the small window. Check that recording is running and Alibi can display over other apps.</string>
+    <string name="ui_videoRecorder_smallWindow_permission">Allow Alibi to display over other apps, then return to open the small window.</string>
+    <string name="ui_videoRecorder_smallWindow_move">Touch and drag within the central 80% of the small window to move it</string>
+    <string name="ui_videoRecorder_smallWindow_resize">Drag the bottom-right edge to resize</string>
+    <string name="ui_videoRecorder_smallWindow_doubleTapClose">Double-tap to close the small window and continue recording</string>
+    <string name="ui_videoRecorder_camera_main">Rear · Main camera</string>
+    <string name="ui_videoRecorder_camera_ultraWide">Rear · Ultra-wide</string>
+    <string name="ui_videoRecorder_camera_telephoto">Rear · Telephoto</string>
+    <string name="ui_videoRecorder_camera_short_main">Main</string>
+    <string name="ui_videoRecorder_camera_short_ultraWide">Ultra-wide</string>
+    <string name="ui_videoRecorder_camera_short_telephoto">Telephoto</string>
+    <string name="ui_videoRecorder_camera_short_front">Front</string>
 </resources>

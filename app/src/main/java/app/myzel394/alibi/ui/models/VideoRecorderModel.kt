@@ -6,7 +6,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.camera.core.CameraSelector
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.documentfile.provider.DocumentFile
@@ -26,7 +25,7 @@ class VideoRecorderModel :
     override val intentClass = VideoRecorderService::class.java
 
     var enableAudio by mutableStateOf(true)
-    var cameraID by mutableIntStateOf(CameraInfo.Lens.BACK.androidValue)
+    var cameraID by mutableStateOf<String?>(null)
 
     override val isInRecording: Boolean
         get() = super.isInRecording
@@ -35,11 +34,15 @@ class VideoRecorderModel :
         private set
 
     val cameraSelector: CameraSelector
-        get() = CameraSelector.Builder().requireLensFacing(cameraID).build()
+        get() = CameraInfo.selectorForId(cameraID)
 
     fun init(context: Context) {
         enableAudio = PermissionHelper.hasGranted(context, Manifest.permission.RECORD_AUDIO)
-        cameraID = CameraInfo.Lens.BACK.androidValue
+        val cameras = CameraInfo.queryAvailableCameras(context)
+        if (cameras.none { it.id == cameraID }) {
+            cameraID = (cameras.firstOrNull { it.lens == CameraInfo.Lens.BACK }
+                ?: cameras.firstOrNull())?.id
+        }
     }
 
     override fun startRecording(context: Context, settings: AppSettings) {
@@ -72,9 +75,12 @@ class VideoRecorderModel :
             isStartingRecording = false
         }
 
-        service.onCameraControlAvailable = {
+        service.onCameraReady = {
+            cameraID = service.cameraID
             isStartingRecording = false
         }
+
+        if (service.cameraID != null) cameraID = service.cameraID
 
         recorderState = service.state
         recordingTime = service.recordingTime

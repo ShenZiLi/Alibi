@@ -142,8 +142,6 @@
     <string name="ui_videoRecorder_action_start_settings_label">Aufzeichnung vorbereiten</string>
     <string name="ui_videoRecorder_action_start_settings_cameraLens_selection_label">Kamera auswählen</string>
     <string name="ui_videoRecorder_action_preview_label">Halten Sie die Taste gedrückt, um die Vorschau der Kamera zu sehen</string>
-    <string name="ui_videoRecorder_action_torch_off">Taschenlampe deaktivieren</string>
-    <string name="ui_videoRecorder_action_torch_on">Taschenlampe aktivieren</string>
     <string name="ui_videoRecorder_action_configure_label">Drücke lange für die Konfiguration</string>
     <string name="ui_recorder_action_changeMaxDuration_title">Wenn angehalten, speichern Sie die letzten...</string>
     <string name="ui_recorder_info_startTime_short">Aufnahme gestartet um %s</string>
